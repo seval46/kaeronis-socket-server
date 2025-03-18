@@ -1,9 +1,11 @@
+
+
 import os
 import socketio
 import eventlet
 
 # Crée un serveur Socket.IO avec autorisation CORS pour tous les clients
-sio = socketio.Server(cors_allowed_origins='*')  # CORS * : tous les domaines peuvent se connecter
+sio = socketio.Server(cors_allowed_origins='*')
 
 # Application WSGI à lancer avec eventlet
 app = socketio.WSGIApp(sio)
@@ -23,17 +25,18 @@ def disconnect(sid):
 def message(sid, data):
     print(f"💬 Message reçu de {sid}: {data}")
 
-    # Réemission du message à tous les clients sauf l'émetteur
+    # Réemission du message à tous les autres clients sauf celui qui envoie
     sio.emit('message', data, skip_sid=sid)
+    print(f"📤 Message réémis à tous les clients sauf {sid}")
 
 # Point d'entrée du serveur
 if __name__ == '__main__':
-    # On récupère le port dynamique assigné par Render ou on utilise 5000 en local
+    # Utilise le port dynamique donné par Render ou 5000 en local
     PORT = int(os.environ.get("PORT", 5000))
 
     print(f"🚀 Socket.IO Server lancé sur 0.0.0.0:{PORT}")
+    print(f"🌐 Accède à ton service via Render : https://kaeronis-socket-server.onrender.com")
 
-    # Lance le serveur Eventlet WSGI sur le port récupéré
+    # Lance le serveur Eventlet WSGI
     eventlet.wsgi.server(eventlet.listen(('0.0.0.0', PORT)), app)
-
 
