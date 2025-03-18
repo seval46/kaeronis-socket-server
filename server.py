@@ -24,9 +24,9 @@ def disconnect(sid):
 @sio.event
 def message(sid, data):
     print(f"💬 Message reçu de {sid}: {data}")
-
-    # Réemission du message à tous les autres clients sauf celui qui envoie
-    sio.emit('message', data, skip_sid=sid)
+    
+    # Réémission
+    sio.emit('message', data)  # Envoie à TOUS les clients, y compris celui qui envoie
     print(f"📤 Message réémis à tous les clients sauf {sid}")
 
 # Point d'entrée du serveur
