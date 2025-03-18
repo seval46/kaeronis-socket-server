@@ -2,36 +2,38 @@ import os
 import socketio
 import eventlet
 
-# Création de l'instance Socket.IO Server
-sio = socketio.Server(cors_allowed_origins='*')  # Autorise tous les domaines (CORS)
+# Crée un serveur Socket.IO avec autorisation CORS pour tous les clients
+sio = socketio.Server(cors_allowed_origins='*')  # CORS * : tous les domaines peuvent se connecter
 
-# Création de l'application WSGI
+# Application WSGI à lancer avec eventlet
 app = socketio.WSGIApp(sio)
 
-# Événement de connexion
+# Fonction appelée à chaque nouvelle connexion d'un client
 @sio.event
 def connect(sid, environ):
     print(f"✅ Client connecté : {sid}")
 
-# Événement de déconnexion
+# Fonction appelée à chaque déconnexion d'un client
 @sio.event
 def disconnect(sid):
     print(f"🚪 Client déconnecté : {sid}")
 
-# Événement pour transmettre des messages (signalisation WebRTC par exemple)
+# Fonction appelée à chaque réception de message d'un client
 @sio.event
 def message(sid, data):
     print(f"💬 Message reçu de {sid}: {data}")
-    # On émet à tous les autres clients sauf celui qui envoie
+
+    # Réemission du message à tous les clients sauf l'émetteur
     sio.emit('message', data, skip_sid=sid)
 
-# Point d'entrée principal
+# Point d'entrée du serveur
 if __name__ == '__main__':
-    # Utilisation du port donné par Render, ou 5000 en local
+    # On récupère le port dynamique assigné par Render ou on utilise 5000 en local
     PORT = int(os.environ.get("PORT", 5000))
-    
+
     print(f"🚀 Socket.IO Server lancé sur 0.0.0.0:{PORT}")
-    
-    # Lancement du serveur Eventlet sur le port dynamique
+
+    # Lance le serveur Eventlet WSGI sur le port récupéré
     eventlet.wsgi.server(eventlet.listen(('0.0.0.0', PORT)), app)
+
 
